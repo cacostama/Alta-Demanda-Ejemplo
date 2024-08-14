@@ -6,3 +6,14 @@ Stack:
 -Kafka
 -posgrest
 -docker
+
+--Instalar Dependencias
+mkdir api-load-test
+cd api-load-test
+npm init -y
+npm install express pg
+
+mkdir src
+touch src/index.js src/db.js src/routes.js
+npm install axios
+
