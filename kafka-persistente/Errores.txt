@@ -1,0 +1,147 @@
+El error que estás viendo, `TopicsNotExistError: The topic(s) pagos do not exist`, indica que el consumidor de Kafka está intentando suscribirse a un topic llamado `pagos`, pero ese topic no ha sido creado en el broker de Kafka.
+
+### Solución
+
+Tienes dos opciones para resolver este problema:
+
+1. **Crear el Topic Manualmente**
+2. **Configurar el Productor para Crear el Topic Automáticamente**
+
+### 1. **Crear el Topic Manualmente**
+
+Puedes crear el topic `pagos` manualmente usando la herramienta de línea de comandos de Kafka.
+
+#### Paso 1: Accede al contenedor de Kafka
+
+Primero, accede al contenedor de Kafka donde está corriendo el broker:
+
+```bash
+docker exec -it <kafka-container-id> /bin/bash
+```
+
+Puedes obtener el `kafka-container-id` usando el comando `docker ps`.
+
+#### Paso 2: Crear el Topic
+
+Una vez dentro del contenedor, puedes crear el topic con el siguiente comando:
+
+```bash
+kafka-topics.sh --create --topic pagos --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+```
+
+Este comando creará un topic llamado `pagos` con 1 partición y un factor de replicación de 1.
+
+#### Paso 3: Verificar la Creación del Topic
+
+Para asegurarte de que el topic ha sido creado correctamente, puedes listar los topics:
+
+```bash
+kafka-topics.sh --list --bootstrap-server localhost:9092
+```
+
+Deberías ver `pagos` en la lista de topics.
+
+### 2. **Configurar el Productor para Crear el Topic Automáticamente**
+
+Si prefieres que el topic se cree automáticamente cuando el productor envíe el primer mensaje, puedes configurar el cliente de Kafka para que lo haga.
+
+Modifica la configuración del cliente en el productor (`src/routes.js`):
+
+```javascript
+const client = new kafka.KafkaClient({ kafkaHost: '127.0.0.1:9092', autoCreateTopics: true });
+```
+
+Esto permitirá que Kafka cree automáticamente el topic si no existe cuando el productor envía un mensaje.
+
+### 3. **Reiniciar el Consumidor**
+
+Después de crear el topic o configurar el productor para crear topics automáticamente, puedes reiniciar el consumidor:
+
+```bash
+node src/consumer.js
+```
+
+Esto debería resolver el problema, y el consumidor debería poder suscribirse al topic `pagos` sin errores.
+
+### Resumen
+
+- **Crear el topic manualmente** usando la herramienta de línea de comandos de Kafka.
+- **Configurar el productor para que cree topics automáticamente** cuando no existen.
+
+Con el topic `pagos` creado, tu consumidor de Kafka debería funcionar correctamente y procesar los mensajes enviados a ese topic.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+El error `TopicsNotExistError` indica que el consumidor de Kafka no puede encontrar el tópico llamado `pagos` en el servidor de Kafka. Aquí hay algunos pasos que puedes seguir para resolver este problema:
+
+1. **Verificar si el tópico `pagos` realmente existe**:
+   Ejecuta el siguiente comando para asegurarte de que el tópico `pagos` ha sido creado correctamente en Kafka:
+   ```bash
+   docker exec -it <id_del_contenedor_de_kafka> kafka-topics.sh --describe --topic pagos --bootstrap-server localhost:9092
+   ```
+
+   Si el tópico no aparece, significa que no fue creado correctamente.
+
+2. **Crear el tópico manualmente**:
+   Si el tópico no existe, puedes crearlo manualmente con el siguiente comando:
+   ```bash
+   docker exec -it <id_del_contenedor_de_kafka> kafka-topics.sh --create --topic pagos --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+   ```
+
+3. **Revisar los logs de Kafka**:
+   Si el tópico existe pero el error persiste, revisa los logs de Kafka para ver si hay algún problema específico con la creación o administración de tópicos:
+   ```bash
+   docker logs <id_del_contenedor_de_kafka>
+   ```
+
+4. **Reiniciar Kafka**:
+   A veces, reiniciar Kafka puede resolver problemas temporales o de configuración. Puedes hacerlo con:
+   ```bash
+   docker-compose restart kafka
+   ```
+
+5. **Asegúrate de que tu consumidor esté configurado correctamente**:
+   Verifica que el consumidor en tu script de Node.js esté apuntando al broker correcto y al tópico correcto. Asegúrate de que los detalles como el `bootstrap-server` estén correctamente configurados.
+
+6. **Problemas de sincronización de Zookeeper**:
+   Si estás utilizando Zookeeper, podría haber problemas de sincronización. Asegúrate de que todos los nodos estén en sincronía y que el líder de Zookeeper esté en funcionamiento.
+
+Intenta seguir estos pasos y verifica si el consumidor de Kafka puede conectarse correctamente al tópico `pagos`.
+
+docker-compose down
+docker-compose up -d
